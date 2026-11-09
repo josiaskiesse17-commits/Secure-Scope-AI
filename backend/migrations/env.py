@@ -49,7 +49,8 @@ def run_migrations_online():
             context.run_migrations()
 
 
-if context.is_offline():
+cmd_opts = getattr(context.config, "cmd_opts", None)
+if cmd_opts is not None and getattr(cmd_opts, "sql", False):
     run_migrations_offline()
 else:
     run_migrations_online()
