@@ -11,7 +11,8 @@
     "ecmaFeatures": {
       "jsx": true
     },
-    "project": ["./tsconfig.json", "./tsconfig.node.json"]
+    "project": ["./tsconfig.json", "./tsconfig.node.json"],
+    "tsconfigRootDir": "."
   },
   "plugins": ["@typescript-eslint"],
   "rules": {
