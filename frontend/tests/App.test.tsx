@@ -1,17 +1,20 @@
-import { describe, it, expect, vi } from 'vitest'
+import { beforeEach, describe, it, expect, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
-import App from './App'
+import App from '../src/App'
 
-// Mock fetch globally
-global.fetch = vi.fn()
+const makeFetchMock = () => vi.fn()
 
 describe('App', () => {
+  let fetchMock: ReturnType<typeof makeFetchMock>
+
   beforeEach(() => {
     vi.resetAllMocks()
+    fetchMock = makeFetchMock()
+    globalThis.fetch = fetchMock as unknown as typeof fetch
   })
 
   it('renders the app title', () => {
-    ;(fetch as vi.Mock).mockResolvedValue({
+    fetchMock.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ status: 'ok', database: 'connected' }),
     })
@@ -21,11 +24,14 @@ describe('App', () => {
   })
 
   it('shows loading state initially', () => {
-    ;(fetch as vi.Mock).mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve({
-        ok: true,
-        json: () => Promise.resolve({ status: 'ok', database: 'connected' }),
-      }), 100))
+    fetchMock.mockImplementation(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(() => resolve({
+            ok: true,
+            json: () => Promise.resolve({ status: 'ok', database: 'connected' }),
+          }), 100)
+        )
     )
 
     render(<App />)
@@ -33,7 +39,7 @@ describe('App', () => {
   })
 
   it('displays health status when loaded', async () => {
-    ;(fetch as vi.Mock).mockResolvedValue({
+    fetchMock.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ status: 'ok', database: 'connected' }),
     })
@@ -49,7 +55,7 @@ describe('App', () => {
   })
 
   it('displays error when fetch fails', async () => {
-    ;(fetch as vi.Mock).mockRejectedValue(new Error('Network error'))
+    fetchMock.mockRejectedValue(new Error('Network error'))
 
     render(<App />)
 

@@ -1,33 +1,35 @@
 # Makefile for SecureScope AI
 # Windows users without make can use the docker-compose commands directly
 
-.PHONY: test test-backend test-frontend lint lint-backend lint-frontend typecheck typecheck-backend help
+.PHONY: test test-backend test-frontend lint lint-backend lint-frontend typecheck typecheck-backend typecheck-frontend help
 
 help:
 	@echo "Available targets:"
-	@echo "  test            - Run all tests (backend + frontend)"
-	@echo "  test-backend    - Run backend tests only"
-	@echo "  test-frontend   - Run frontend tests only"
-	@echo "  lint            - Run all linters"
-	@echo "  lint-backend    - Run backend linter (ruff)"
-	@echo "  lint-frontend   - Run frontend linter (eslint)"
-	@echo "  typecheck       - Run all type checkers"
+	@echo "  test             - Run all tests (backend + frontend)"
+	@echo "  test-backend     - Run backend tests only"
+	@echo "  test-frontend    - Run frontend tests only"
+	@echo "  lint             - Run all linters"
+	@echo "  lint-backend     - Run backend linter (ruff)"
+	@echo "  lint-frontend    - Run frontend linter (eslint)"
+	@echo "  typecheck        - Run all type checkers"
 	@echo "  typecheck-backend - Run backend type checker (mypy)"
+	@echo "  typecheck-frontend - Run frontend type checker (tsc)"
 	@echo ""
 	@echo "Windows alternative (run from project root):"
 	@echo "  docker compose run --rm backend pytest"
-	@echo "  docker compose run --rm frontend npm test"
+	@echo "  docker run --rm -v \"\$${pwd}/frontend:/app\" -w /app node:18-slim sh -c \"npm ci --include=optional && npm test\""
 	@echo "  docker compose run --rm backend ruff check ."
-	@echo "  docker compose run --rm frontend npm run lint"
+	@echo "  docker run --rm -v \"\$${pwd}/frontend:/app\" -w /app node:18-slim sh -c \"npm ci --include=optional && npm run lint\""
 	@echo "  docker compose run --rm backend mypy app"
+	@echo "  docker run --rm -v \"\$${pwd}/frontend:/app\" -w /app node:18-slim sh -c \"npm ci --include=optional && npx tsc --noEmit\""
 
 # Backend tests
 test-backend:
 	docker compose run --rm backend pytest -v
 
-# Frontend tests
+# Frontend tests (runs in a Node container since the frontend service image is nginx-only)
 test-frontend:
-	docker compose run --rm frontend npm test
+	docker run --rm -v "$${pwd}/frontend:/app" -w /app node:18-slim sh -c "npm ci --include=optional && npm test"
 
 # All tests
 test: test-backend test-frontend
@@ -38,7 +40,7 @@ lint-backend:
 
 # Frontend linting
 lint-frontend:
-	docker compose run --rm frontend npm run lint
+	docker run --rm -v "$${pwd}/frontend:/app" -w /app node:18-slim sh -c "npm ci --include=optional && npm run lint"
 
 # All linting
 lint: lint-backend lint-frontend
@@ -47,8 +49,12 @@ lint: lint-backend lint-frontend
 typecheck-backend:
 	docker compose run --rm backend mypy app
 
-# All type checking (frontend uses tsc --noEmit via build)
-typecheck: typecheck-backend
+# Frontend type checking
+typecheck-frontend:
+	docker run --rm -v "$${pwd}/frontend:/app" -w /app node:18-slim sh -c "npm ci --include=optional && npx tsc --noEmit"
+
+# All type checking
+typecheck: typecheck-backend typecheck-frontend
 
 # Start full stack
 up:

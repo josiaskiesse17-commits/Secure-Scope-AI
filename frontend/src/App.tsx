@@ -17,7 +17,7 @@ function App() {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
-        const data = await response.json()
+        const data = (await response.json()) as HealthResponse
         setHealth(data)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error')
@@ -26,7 +26,7 @@ function App() {
       }
     }
 
-    fetchHealth()
+    void fetchHealth()
   }, [])
 
   const renderHealthContent = () => {

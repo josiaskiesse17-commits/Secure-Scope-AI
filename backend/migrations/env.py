@@ -1,15 +1,15 @@
-from logging.config import fileConfig
 import os
 import sys
+from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, pool
 from alembic import context
+from sqlalchemy import engine_from_config, pool
 
 # Add the app directory to the path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from app.database import Base
 from app.config import settings
+from app.database import Base
 
 config = context.config
 
@@ -49,7 +49,7 @@ def run_migrations_online():
             context.run_migrations()
 
 
-if context.is_offline():
+if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
