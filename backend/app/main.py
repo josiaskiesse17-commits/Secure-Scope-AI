@@ -1,26 +1,22 @@
-from contextlib import asynccontextmanager
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager, suppress
 
+from alembic import command
+from alembic.config import Config
 from fastapi import FastAPI
 from sqlalchemy import text
 
 from app.config import settings
-from app.database import engine, get_db
+from app.database import engine
 from app.schemas import HealthLiveResponse, HealthReadyResponse
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # Run migrations on startup
-    from alembic.config import Config
-    from alembic import command
-
     alembic_cfg = Config("alembic.ini")
-    try:
+    with suppress(Exception):
         command.upgrade(alembic_cfg, "head")
-    except Exception:
-        # If migrations fail, we still start the app
-        # The health check will catch database issues
-        pass
     yield
 
 
@@ -32,13 +28,13 @@ app = FastAPI(
 
 
 @app.get("/health/live", response_model=HealthLiveResponse)
-async def health_live():
+async def health_live() -> HealthLiveResponse:
     """Liveness probe - process is running."""
     return HealthLiveResponse()
 
 
 @app.get("/health/ready", response_model=HealthReadyResponse)
-async def health_ready():
+async def health_ready() -> HealthReadyResponse:
     """Readiness probe - process is running and database is reachable."""
     try:
         with engine.connect() as conn:

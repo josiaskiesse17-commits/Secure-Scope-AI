@@ -6,7 +6,6 @@ build-backend = "setuptools.build_meta"
 name = "securescope-backend"
 version = "0.1.0"
 description = "SecureScope AI Backend"
-readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi==0.115.0",
@@ -18,6 +17,9 @@ dependencies = [
     "psycopg2-binary==2.9.9",
     "python-dotenv==1.0.1",
 ]
+
+[tool.setuptools.packages.find]
+include = ["app*", "worker*"]
 
 [project.optional-dependencies]
 dev = [
@@ -33,6 +35,9 @@ target-version = "py311"
 line-length = 100
 select = ["E", "F", "I", "UP", "B", "C4", "SIM", "TID", "PL"]
 ignore = ["E501", "SIM103"]
+
+[tool.ruff.per-file-ignores]
+"tests/*" = ["PLR2004"]
 
 [tool.ruff.format]
 quote-style = "double"
